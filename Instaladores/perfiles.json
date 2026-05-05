@@ -1,0 +1,10 @@
+[
+  {
+    "Nombre": "Equipos Pool",
+    "Apps": [ "Acrobat", "Libre", "Teams", "Zilla", "Chrome", "PowerBI", "Java", "Crystal" ]
+  },
+  {
+    "Nombre": "Notebook",
+    "Apps": [ "Acrobat", "Office", "VPN", "Teams", "Zilla", "Chrome", "PowerBI", "Java", "Crystal" ]
+  }
+]

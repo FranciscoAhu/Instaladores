@@ -1,0 +1,50 @@
+[
+  {
+    "Nombre": "Google Chrome",
+    "Id": "Chrome"
+  },
+  {
+    "Nombre": "AcrobatReader",
+    "Id": "Acrobat"
+  },
+  {
+    "Nombre": "Java",
+    "Id": "Java"
+  },
+  {
+    "Nombre": "FileZilla",
+    "Id": "Zilla"
+  },
+  {
+    "Nombre": "Teams",
+    "Id": "Teams"
+  },
+  {
+    "Nombre": "Office",
+    "Id": "Office"
+  },
+  {
+    "Nombre": "PowerBI",
+    "Id": "PowerBI"
+  },
+  {
+    "Nombre": "VPN",
+    "Id": "VPN"
+  },
+  {
+    "Nombre": "Crystal Viewer",
+    "Id": "Crystal"
+  },
+  {
+    "Nombre": "LibreOffice",
+    "Id": "Libre"
+  },
+  {
+    "Nombre": "HP Support Assistant",
+    "Id": "HP"
+  },
+  {
+    "Nombre": "Lenovo System Update",
+    "Id": "Lenovo"
+  }
+]
