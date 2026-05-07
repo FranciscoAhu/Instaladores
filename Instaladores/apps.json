@@ -1,50 +1,86 @@
 [
   {
     "Nombre": "Google Chrome",
-    "Id": "Chrome"
+    "Id": "Chrome",
+    "Ruta": "D:\\Apps\\Chrome",
+    "Tipo": "exe",
+    "Args": "--system-level --silent --do-not-launch-chrome"
   },
   {
     "Nombre": "AcrobatReader",
-    "Id": "Acrobat"
+    "Id": "Acrobat",
+    "Ruta": "D:\\Apps\\Acrobat",
+    "Tipo": "exe",
+    "Args": "/sAll /rs /rps /quiet /norestart"
   },
   {
     "Nombre": "Java",
-    "Id": "Java"
+    "Id": "Java",
+    "Ruta": "D:\\Apps\\Java",
+    "Tipo": "exe",
+    "Args": "/s"
   },
   {
     "Nombre": "FileZilla",
-    "Id": "Zilla"
+    "Id": "Zilla",
+    "Ruta": "D:\\Apps\\Zilla",
+    "Tipo": "exe",
+    "Args": "/S"
   },
   {
     "Nombre": "Teams",
-    "Id": "Teams"
+    "Id": "Teams",
+    "Ruta": "D:\\Apps\\Teams",
+    "Tipo": "exe",
+    "Args": "--silent --system-level"
   },
   {
     "Nombre": "Office",
-    "Id": "Office"
+    "Id": "Office",
+    "Ruta": "D:\\Apps\\Office",
+    "Tipo": "exe",
+    "Args": "/configure configuration.xml"
   },
   {
     "Nombre": "PowerBI",
-    "Id": "PowerBI"
+    "Id": "PowerBI",
+    "Ruta": "D:\\Apps\\PowerBI",
+    "Tipo": "exe",
+    "Args": "/quiet /norestart ACCEPT_EULA=1"
   },
   {
     "Nombre": "VPN",
-    "Id": "VPN"
+    "Id": "VPN",
+    "Ruta": "D:\\Apps\\VPN",
+    "Tipo": "msi",
+    "Args": "msiexec /i \"VPN.msi\" /qn /norestart"
   },
   {
     "Nombre": "Crystal Viewer",
-    "Id": "Crystal"
+    "Id": "Crystal",
+    "Ruta": "D:\\Apps\\Crystal",
+    "Tipo": "exe",
+    "Args": "/quiet /norestart"
   },
   {
     "Nombre": "LibreOffice",
-    "Id": "Libre"
+    "Id": "Libre",
+    "Ruta": "D:\\Apps\\Libre",
+    "Tipo": "exe",
+    "Args": "/quiet /norestart"
   },
   {
     "Nombre": "HP Support Assistant",
-    "Id": "HP"
+    "Id": "HP",
+    "Ruta": "D:\\Apps\\HP",
+    "Tipo": "exe",
+    "Args": "/S"
   },
   {
     "Nombre": "Lenovo System Update",
-    "Id": "Lenovo"
+    "Id": "Lenovo",
+    "Ruta": "D:\\Apps\\Lenovo",
+    "Tipo": "exe",
+    "Args": "/S"
   }
 ]

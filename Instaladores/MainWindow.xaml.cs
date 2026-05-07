@@ -1,4 +1,5 @@
 ﻿
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -99,42 +100,65 @@ namespace Instaladores
                 .FirstOrDefault();
         }
 
-        private Task<int> RunInstallerAsync(string filePath, string args, bool elevate = true)
+        private async Task<int> RunInstallerAsync(string filePath, string args, IProgress<int> progress = null, bool elevate = true)
         {
-            if (string.IsNullOrEmpty(filePath) || !File.Exists(filePath))
+            if (string.IsNullOrEmpty(filePath) || (!File.Exists(filePath) && !string.Equals(Path.GetFileName(filePath), "msiexec", System.StringComparison.OrdinalIgnoreCase)))
                 throw new FileNotFoundException("Installer not found", filePath);
 
-            return Task.Run(() =>
+            var psi = new ProcessStartInfo
             {
-                var psi = new ProcessStartInfo
-                {
-                    FileName = filePath,
-                    Arguments = args ?? string.Empty,
-                    UseShellExecute = true,
-                    Verb = elevate ? "runas" : string.Empty,
-                    WindowStyle = ProcessWindowStyle.Hidden
-                };
+                FileName = filePath,
+                Arguments = args ?? string.Empty,
+                UseShellExecute = true,
+                Verb = elevate ? "runas" : string.Empty,
+                WindowStyle = ProcessWindowStyle.Hidden
+            };
 
-                // If the filePath includes a directory, set it as the working directory
-                var dir = Path.GetDirectoryName(filePath);
-                if (!string.IsNullOrEmpty(dir))
-                {
-                    psi.WorkingDirectory = dir;
-                }
+            // If the filePath includes a directory, set it as the working directory
+            var dir = Path.GetDirectoryName(filePath);
+            if (!string.IsNullOrEmpty(dir))
+            {
+                psi.WorkingDirectory = dir;
+            }
 
-                try
+            try
+            {
+                using (var proc = Process.Start(psi))
                 {
-                    using (var proc = Process.Start(psi))
+                    if (proc == null)
+                        return -1;
+
+                    // report start
+                    progress?.Report(0);
+
+                    var rnd = new System.Random();
+                    int simulated = 0;
+
+                    // While the process is running, simulate progress increments up to 95%
+                    while (!proc.HasExited)
                     {
-                        proc.WaitForExit();
+                        await Task.Delay(500);
+                        simulated = Math.Min(95, simulated + rnd.Next(3, 10));
+                        progress?.Report(simulated);
+                    }
+
+                    // Ensure we report completion
+                    try
+                    {
+                        progress?.Report(100);
                         return proc.ExitCode;
                     }
+                    catch
+                    {
+                        return -1;
+                    }
                 }
-                catch
-                {
-                    return -1;
-                }
-            });
+            }
+            catch
+            {
+                progress?.Report(0);
+                return -1;
+            }
         }
 
         private async Task ExecuteSelectedAppsAsync()
@@ -142,6 +166,12 @@ namespace Instaladores
             var selected = Apps?.Where(a => a.IsSelected).ToList();
             if (selected == null || selected.Count == 0)
                 return;
+
+            // Only show progress for selected apps
+            foreach (var app in Apps)
+            {
+                app.ShowProgress = app.IsSelected;
+            }
 
             foreach (var app in selected)
             {
@@ -178,7 +208,20 @@ namespace Instaladores
                 }
 
                 File.AppendAllText("install.log", $"[{System.DateTime.Now}] Ejecutando {fileToRun} {args} for {app.Nombre}\r\n");
-                var exit = await RunInstallerAsync(fileToRun, args, elevate: true);
+
+                app.IsBusy = true;
+                app.Progress = 0;
+
+                var progress = new Progress<int>(p =>
+                {
+                    app.Progress = p;
+                });
+
+                var exit = await RunInstallerAsync(fileToRun, args, progress, elevate: true);
+
+                app.Progress = 100;
+                app.IsBusy = false;
+
                 File.AppendAllText("install.log", $"[{System.DateTime.Now}] ExitCode={exit} for {app.Nombre}\r\n");
             }
         }
