@@ -47,7 +47,6 @@ namespace Instaladores
             var json = File.ReadAllText("perfiles.json");
             return JsonSerializer.Deserialize<List<Profile>>(json);
         }
-        //todo: Perfiles marcan checkbox!!!
         private void AplicarPerfil()
         {
             if (SelectedProfile == null)
