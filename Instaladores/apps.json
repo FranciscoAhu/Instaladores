@@ -9,7 +9,7 @@
   {
     "Nombre": "AcrobatReader",
     "Id": "Acrobat",
-    "Ruta": "D:\\Apps\\Acrobat",
+    "Ruta": "D:\\Apps\\AcrobeReader",
     "Tipo": "exe",
     "Args": "/sAll /rs /rps /quiet /norestart"
   },
@@ -23,7 +23,7 @@
   {
     "Nombre": "FileZilla",
     "Id": "Zilla",
-    "Ruta": "D:\\Apps\\Zilla",
+    "Ruta": "D:\\Apps\\FileZilla",
     "Tipo": "exe",
     "Args": "/S"
   },

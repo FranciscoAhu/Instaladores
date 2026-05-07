@@ -183,6 +183,57 @@ namespace Instaladores
                     continue;
                 }
 
+                // Special case: Crystal Viewer should run both EXE then MSI when its single checkbox is selected
+                if (string.Equals(app.Id, "Crystal", System.StringComparison.OrdinalIgnoreCase))
+                {
+                    // find exe and msi installers in the same folder
+                    string exeInstaller = null;
+                    string msiInstaller = null;
+                    if (Directory.Exists(app.Ruta))
+                    {
+                        exeInstaller = Directory.GetFiles(app.Ruta, "*.exe")
+                            .OrderByDescending(f => new FileInfo(f).CreationTime)
+                            .FirstOrDefault();
+
+                        msiInstaller = Directory.GetFiles(app.Ruta, "*.msi")
+                            .OrderByDescending(f => new FileInfo(f).CreationTime)
+                            .FirstOrDefault();
+                    }
+
+                    // run exe first (if present). This old exe must be run without arguments.
+                    if (!string.IsNullOrEmpty(exeInstaller))
+                    {
+                        File.AppendAllText("install.log", $"[{System.DateTime.Now}] Ejecutando {exeInstaller} (sin args) for {app.Nombre} (exe)\r\n");
+
+                        app.IsBusy = true;
+                        app.Progress = 0;
+
+                        var progressExe = new Progress<int>(p => app.Progress = p);
+                        // run EXE with no arguments because it fails when passed args
+                        var exitExe = await RunInstallerAsync(exeInstaller, string.Empty, progressExe, elevate: true);
+
+                        File.AppendAllText("install.log", $"[{System.DateTime.Now}] ExitCode={exitExe} for {app.Nombre} (exe)\r\n");
+                    }
+
+                    // then run msi (if present)
+                    if (!string.IsNullOrEmpty(msiInstaller))
+                    {
+                        // prepare msiexec arguments. Use /qn /norestart for silent install of the MSI.
+                        string msiArgs = $"/i \"{msiInstaller}\" /qn /norestart";
+
+                        File.AppendAllText("install.log", $"[{System.DateTime.Now}] Ejecutando msiexec {msiArgs} for {app.Nombre} (msi)\r\n");
+
+                        var progressMsi = new Progress<int>(p => app.Progress = p);
+                        var exitMsi = await RunInstallerAsync("msiexec", msiArgs, progressMsi, elevate: true);
+
+                        File.AppendAllText("install.log", $"[{System.DateTime.Now}] ExitCode={exitMsi} for {app.Nombre} (msi)\r\n");
+                    }
+
+                    app.Progress = 100;
+                    app.IsBusy = false;
+                    continue;
+                }
+
                 string fileToRun = installer;
                 string args = app.Args ?? string.Empty;
 
