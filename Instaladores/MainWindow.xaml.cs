@@ -1,4 +1,4 @@
-﻿using Instaladores.Models;
+﻿
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -44,6 +44,7 @@ namespace Instaladores
             var json = File.ReadAllText("perfiles.json");
             return JsonSerializer.Deserialize<List<Profile>>(json);
         }
+        //todo: Perfiles marcan checkbox!!!
         private void AplicarPerfil()
         {
             if (SelectedProfile == null)
