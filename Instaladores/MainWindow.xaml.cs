@@ -254,7 +254,7 @@ namespace Instaladores
                     }
 
                     // construir args correctamente con el MSI encontrado
-                        args = $"/i \"{installer}\" {extra}".Trim();
+                    args = $"/i \"{installer}\" {extra}".Trim();
 
                     fileToRun = "msiexec";
                 }

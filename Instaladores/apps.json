@@ -66,8 +66,8 @@
     "Nombre": "LibreOffice",
     "Id": "Libre",
     "Ruta": "D:\\Apps\\Libre",
-    "Tipo": "exe",
-    "Args": "/quiet /norestart"
+    "Tipo": "msi",
+    "Args": "/qn /norestart"
   },
   {
     "Nombre": "HP Support Assistant",
