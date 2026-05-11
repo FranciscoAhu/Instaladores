@@ -238,21 +238,23 @@ namespace Instaladores
 
                 if (string.Equals(app.Tipo, "msi", System.StringComparison.OrdinalIgnoreCase))
                 {
-                    // prepare msiexec arguments
-                    var extra = args ?? string.Empty;
-                    // if args already contains .msi, assume it references an installer and use it as-is (but remove leading 'msiexec')
+                    // SIEMPRE usar el MSI encontrado en la carpeta (ignorar nombre fijo en Args)
+                    string extra = app.Args ?? string.Empty;
+
+                    // limpiar por si el JSON trae "msiexec" o "/i algo.msi"
                     if (extra.IndexOf(".msi", System.StringComparison.OrdinalIgnoreCase) >= 0)
                     {
-                        // remove leading msiexec token if present
+                        // quitar msiexec si viene incluido
                         if (extra.TrimStart().StartsWith("msiexec", System.StringComparison.OrdinalIgnoreCase))
                             extra = extra.Substring(7).Trim();
 
-                        args = extra;
+                        // eliminar cualquier referencia a .msi
+                        extra = System.Text.RegularExpressions.Regex.Replace(extra, "\".*?\\.msi\"", "", System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+                        extra = System.Text.RegularExpressions.Regex.Replace(extra, @"\S+\.msi", "", System.Text.RegularExpressions.RegexOptions.IgnoreCase);
                     }
-                    else
-                    {
+
+                    // construir args correctamente con el MSI encontrado
                         args = $"/i \"{installer}\" {extra}".Trim();
-                    }
 
                     fileToRun = "msiexec";
                 }

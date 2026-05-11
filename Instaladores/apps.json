@@ -53,7 +53,7 @@
     "Id": "VPN",
     "Ruta": "D:\\Apps\\VPN",
     "Tipo": "msi",
-    "Args": "msiexec /i \"VPN.msi\" /qn /norestart"
+    "Args": "/qn /norestart"
   },
   {
     "Nombre": "Crystal Viewer",
