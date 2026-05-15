@@ -1,4 +1,3 @@
-﻿
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -58,7 +57,6 @@ namespace Instaladores
             }
         }
 
-        // Execute installers for selected apps when user accepts
         private async void Aceptar_Click(object sender, RoutedEventArgs e)
         {
             try
@@ -77,7 +75,6 @@ namespace Instaladores
             this.Close();
         }
 
-        // Find an installer file inside the app.Ruta folder
         private string FindInstallerFile(AppItem app)
         {
             if (app == null || string.IsNullOrWhiteSpace(app.Ruta))
@@ -93,7 +90,6 @@ namespace Instaladores
                     .FirstOrDefault();
             }
 
-            // default: look for exe installers
             return Directory.GetFiles(app.Ruta, "*.exe")
                 .OrderByDescending(f => new FileInfo(f).CreationTime)
                 .FirstOrDefault();
@@ -113,12 +109,9 @@ namespace Instaladores
                 WindowStyle = ProcessWindowStyle.Hidden
             };
 
-            // If the filePath includes a directory, set it as the working directory
             var dir = Path.GetDirectoryName(filePath);
             if (!string.IsNullOrEmpty(dir))
-            {
                 psi.WorkingDirectory = dir;
-            }
 
             try
             {
@@ -127,13 +120,11 @@ namespace Instaladores
                     if (proc == null)
                         return -1;
 
-                    // report start
                     progress?.Report(0);
 
                     var rnd = new System.Random();
                     int simulated = 0;
 
-                    // While the process is running, simulate progress increments up to 95%
                     while (!proc.HasExited)
                     {
                         await Task.Delay(500);
@@ -141,7 +132,6 @@ namespace Instaladores
                         progress?.Report(simulated);
                     }
 
-                    // Ensure we report completion
                     try
                     {
                         progress?.Report(100);
@@ -185,7 +175,6 @@ namespace Instaladores
                 // Special case: Crystal Viewer should run both EXE then MSI when its single checkbox is selected
                 if (string.Equals(app.Id, "Crystal", System.StringComparison.OrdinalIgnoreCase))
                 {
-                    // find exe and msi installers in the same folder
                     string exeInstaller = null;
                     string msiInstaller = null;
                     if (Directory.Exists(app.Ruta))
@@ -199,7 +188,6 @@ namespace Instaladores
                             .FirstOrDefault();
                     }
 
-                    // run exe first (if present). This old exe must be run without arguments.
                     if (!string.IsNullOrEmpty(exeInstaller))
                     {
                         File.AppendAllText("install.log", $"[{System.DateTime.Now}] Ejecutando {exeInstaller} (sin args) for {app.Nombre} (exe)\r\n");
@@ -208,16 +196,13 @@ namespace Instaladores
                         app.Progress = 0;
 
                         var progressExe = new Progress<int>(p => app.Progress = p);
-                        // run EXE with no arguments because it fails when passed args
                         var exitExe = await RunInstallerAsync(exeInstaller, string.Empty, progressExe, elevate: true);
 
                         File.AppendAllText("install.log", $"[{System.DateTime.Now}] ExitCode={exitExe} for {app.Nombre} (exe)\r\n");
                     }
 
-                    // then run msi (if present)
                     if (!string.IsNullOrEmpty(msiInstaller))
                     {
-                        // prepare msiexec arguments. Use /qn /norestart for silent install of the MSI.
                         string msiArgs = $"/i \"{msiInstaller}\" /qn /norestart";
 
                         File.AppendAllText("install.log", $"[{System.DateTime.Now}] Ejecutando msiexec {msiArgs} for {app.Nombre} (msi)\r\n");
@@ -238,7 +223,6 @@ namespace Instaladores
 
                 if (string.Equals(app.Tipo, "msi", System.StringComparison.OrdinalIgnoreCase))
                 {
-                    // SIEMPRE usar el MSI encontrado en la carpeta (ignorar nombre fijo en Args)
                     string extra = app.Args ?? string.Empty;
 
                     // limpiar por si el JSON trae "msiexec" o "/i algo.msi"
@@ -248,14 +232,11 @@ namespace Instaladores
                         if (extra.TrimStart().StartsWith("msiexec", System.StringComparison.OrdinalIgnoreCase))
                             extra = extra.Substring(7).Trim();
 
-                        // eliminar cualquier referencia a .msi
                         extra = System.Text.RegularExpressions.Regex.Replace(extra, "\".*?\\.msi\"", "", System.Text.RegularExpressions.RegexOptions.IgnoreCase);
                         extra = System.Text.RegularExpressions.Regex.Replace(extra, @"\S+\.msi", "", System.Text.RegularExpressions.RegexOptions.IgnoreCase);
                     }
 
-                    // construir args correctamente con el MSI encontrado
                     args = $"/i \"{installer}\" {extra}".Trim();
-
                     fileToRun = "msiexec";
                 }
 
