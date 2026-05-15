@@ -19,6 +19,9 @@ namespace Instaladores
         private int _progress;
         private bool _isBusy;
         private bool _showProgress;
+        private bool _installationSucceeded;
+        private string _installationError;
+        private bool _wasInstalled;
 
         public string Nombre
         {
@@ -115,6 +118,39 @@ namespace Instaladores
             {
                 _isSelected = value;
                 OnPropertyChanged(nameof(IsSelected));
+            }
+        }
+
+        public bool InstallationSucceeded
+        {
+            get => _installationSucceeded;
+            set
+            {
+                if (_installationSucceeded == value) return;
+                _installationSucceeded = value;
+                OnPropertyChanged(nameof(InstallationSucceeded));
+            }
+        }
+
+        public string InstallationError
+        {
+            get => _installationError;
+            set
+            {
+                if (_installationError == value) return;
+                _installationError = value;
+                OnPropertyChanged(nameof(InstallationError));
+            }
+        }
+
+        public bool WasInstalled
+        {
+            get => _wasInstalled;
+            set
+            {
+                if (_wasInstalled == value) return;
+                _wasInstalled = value;
+                OnPropertyChanged(nameof(WasInstalled));
             }
         }
 
