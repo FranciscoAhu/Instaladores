@@ -139,6 +139,14 @@ namespace Instaladores
 
         }
 
+        private void DeselectAll_Button(object sender, RoutedEventArgs e)
+        {
+            foreach (var app in Apps)
+            {
+                app.IsSelected = false;
+            }
+        }
+
         private bool IsApplicationInstalled(AppItem app)
         {
             if (string.IsNullOrWhiteSpace(app.Nombre))
