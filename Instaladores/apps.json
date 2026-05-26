@@ -2,85 +2,85 @@
   {
     "Nombre": "Google Chrome",
     "Id": "Chrome",
-    "Ruta": "D:\\Apps\\Chrome",
+    "Ruta": "C:\\Users\\Artemisa\\Desktop\\Apps\\Chrome",
     "Tipo": "exe",
     "Args": "--system-level --silent --do-not-launch-chrome"
   },
   {
     "Nombre": "AcrobatReader",
     "Id": "Acrobat",
-    "Ruta": "D:\\Apps\\AcrobeReader",
+    "Ruta": "C:\\Users\\Artemisa\\Desktop\\Apps\\AcrobeReader",
     "Tipo": "exe",
     "Args": "/sAll /rs /rps /quiet /norestart"
   },
   {
     "Nombre": "Java",
     "Id": "Java",
-    "Ruta": "D:\\Apps\\Java",
+    "Ruta": "C:\\Users\\Artemisa\\Desktop\\Apps\\Java",
     "Tipo": "exe",
     "Args": "/s"
   },
   {
     "Nombre": "FileZilla",
     "Id": "Zilla",
-    "Ruta": "D:\\Apps\\FileZilla",
+    "Ruta": "C:\\Users\\Artemisa\\Desktop\\Apps\\FileZilla",
     "Tipo": "exe",
     "Args": "/S"
   },
   {
     "Nombre": "Teams",
     "Id": "Teams",
-    "Ruta": "D:\\Apps\\Teams",
+    "Ruta": "C:\\Users\\Artemisa\\Desktop\\Apps\\Teams",
     "Tipo": "exe",
-    "Args": "--silent --system-level"
+    "Args": "-s"
   },
   {
     "Nombre": "Office",
     "Id": "Office",
-    "Ruta": "D:\\Apps\\Office",
+    "Ruta": "C:\\Users\\Artemisa\\Desktop\\Apps\\Office",
     "Tipo": "exe",
     "Args": "/configure configuration.xml"
   },
   {
     "Nombre": "PowerBI",
     "Id": "PowerBI",
-    "Ruta": "D:\\Apps\\PowerBI",
+    "Ruta": "C:\\Users\\Artemisa\\Desktop\\Apps\\PowerBI",
     "Tipo": "exe",
     "Args": "/quiet /norestart ACCEPT_EULA=1"
   },
   {
     "Nombre": "VPN",
     "Id": "VPN",
-    "Ruta": "D:\\Apps\\VPN",
+    "Ruta": "C:\\Users\\Artemisa\\Desktop\\Apps\\VPN",
     "Tipo": "msi",
     "Args": "/qn /norestart"
   },
   {
     "Nombre": "Crystal Viewer",
     "Id": "Crystal",
-    "Ruta": "D:\\Apps\\Crystal",
+    "Ruta": "C:\\Users\\Artemisa\\Desktop\\Apps\\Crystal",
     "Tipo": "exe",
     "Args": "/quiet /norestart"
   },
   {
     "Nombre": "LibreOffice",
     "Id": "Libre",
-    "Ruta": "D:\\Apps\\Libre",
+    "Ruta": "C:\\Users\\Artemisa\\Desktop\\Apps\\Libre",
     "Tipo": "msi",
     "Args": "/qn /norestart"
   },
   {
     "Nombre": "HP Support Assistant",
     "Id": "HP",
-    "Ruta": "D:\\Apps\\HP",
+    "Ruta": "C:\\Users\\Artemisa\\Desktop\\Apps\\HP",
     "Tipo": "exe",
     "Args": "/S"
   },
   {
     "Nombre": "Lenovo System Update",
     "Id": "Lenovo",
-    "Ruta": "D:\\Apps\\Lenovo",
+    "Ruta": "C:\\Users\\Artemisa\\Desktop\\Apps\\Lenovo",
     "Tipo": "exe",
-    "Args": "/S"
+    "Args": "/SP- /VERYSILENT /SUPPRESSMSGBOXES /NORESTART"
   }
 ]

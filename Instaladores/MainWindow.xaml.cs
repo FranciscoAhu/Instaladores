@@ -53,10 +53,24 @@ namespace Instaladores
             if (SelectedProfile == null)
                 return;
 
+            // Guardar el estado de los fabricantes antes de aplicar el perfil
+            var hpApp = Apps.FirstOrDefault(a => a.Id == "HP");
+            var lenovoApp = Apps.FirstOrDefault(a => a.Id == "Lenovo");
+
+            bool wasHpSelected = hpApp?.IsSelected ?? false;
+            bool wasLenovoSelected = lenovoApp?.IsSelected ?? false;
+
+            // Aplicar el perfil
             foreach (var app in Apps)
             {
                 app.IsSelected = SelectedProfile.Apps.Contains(app.Id);
             }
+
+            // Restaurar el estado de los fabricantes
+            if (hpApp != null)
+                hpApp.IsSelected = wasHpSelected;
+            if (lenovoApp != null)
+                lenovoApp.IsSelected = wasLenovoSelected;
         }
 
         private async void Aceptar_Click(object sender, RoutedEventArgs e)
@@ -122,21 +136,34 @@ namespace Instaladores
         }
         private void HP_Button(object sender, RoutedEventArgs e)
         {
+            var hpApp = Apps.FirstOrDefault(a => a.Id == "HP");
+            var lenovoApp = Apps.FirstOrDefault(a => a.Id == "Lenovo");
 
-            foreach (var app in Apps)
+            if (hpApp != null)
             {
-                app.IsSelected = app.Id == "HP";
+                hpApp.IsSelected = true;
             }
 
+            if (lenovoApp != null)
+            {
+                lenovoApp.IsSelected = false;
+            }
         }
+
         private void Lenovo_Button(object sender, RoutedEventArgs e)
         {
+            var lenovoApp = Apps.FirstOrDefault(a => a.Id == "Lenovo");
+            var hpApp = Apps.FirstOrDefault(a => a.Id == "HP");
 
-            foreach (var app in Apps)
+            if (lenovoApp != null)
             {
-                app.IsSelected = app.Id == "Lenovo";
+                lenovoApp.IsSelected = true;
             }
 
+            if (hpApp != null)
+            {
+                hpApp.IsSelected = false;
+            }
         }
 
         private void DeselectAll_Button(object sender, RoutedEventArgs e)

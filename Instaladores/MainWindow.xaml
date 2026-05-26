@@ -65,7 +65,7 @@
 
             <!-- ComboBox con label -->
             <StackPanel Grid.Row="1" Margin="0,8,0,10">
-                <TextBlock Text="Perfiles:" Foreground="White" FontSize="11" Margin="0,0,0,4"/>
+                <TextBlock Text="Perfil:" Foreground="White" FontSize="11" Margin="0,0,0,4"/>
                 <ComboBox ItemsSource="{Binding Profiles}"
                           DisplayMemberPath="Nombre"
                           SelectedItem="{Binding SelectedProfile}"/>
