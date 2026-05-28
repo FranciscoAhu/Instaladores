@@ -1,3 +1,5 @@
 <Solution>
-  <Project Path="Instaladores/Instaladores.csproj" Id="e18c6d76-2bb1-4bea-8902-2f1911b811f3" />
+  <Project Path="Instaladores/Instaladores.csproj" Id="e18c6d76-2bb1-4bea-8902-2f1911b811f3">
+    <BuildType Project="Release" />
+  </Project>
 </Solution>

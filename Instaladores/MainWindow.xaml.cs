@@ -7,6 +7,8 @@ using System.Text.Json;
 using System.Threading.Tasks;
 using System.Windows;
 using Microsoft.Win32;
+using System.Management;
+using System.Net;
 
 namespace Instaladores
 {
@@ -14,6 +16,8 @@ namespace Instaladores
     {
         public List<AppItem> Apps { get; set; }
         public List<Profile> Profiles { get; set; }
+        private List<Process> _runningProcesses = new List<Process>();
+        private bool _isCancellationRequested = false;
 
         private Profile _selectedProfile;
         public Profile SelectedProfile
@@ -28,6 +32,17 @@ namespace Instaladores
 
         public MainWindow()
         {
+            // Verificar conexión a internet antes de iniciar
+            if (!HayConexionInternet())
+            {
+                MessageBox.Show(
+                    "Se requiere conexión a internet para ejecutar esta aplicación.",
+                    "Sin conexión",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Error);
+                Application.Current.Shutdown();
+                return;
+            }
             InitializeComponent();
 
             Apps = CargarApps();
@@ -35,7 +50,19 @@ namespace Instaladores
 
             DataContext = this;
         }
-
+        private bool HayConexionInternet()
+        {
+            try
+            {
+                using (var client = new System.Net.WebClient())
+                using (client.OpenRead("http://www.google.com"))
+                    return true;
+            }
+            catch
+            {
+                return false;
+            }
+        }
         private List<AppItem> CargarApps()
         {
             var json = File.ReadAllText("apps.json");
@@ -77,6 +104,11 @@ namespace Instaladores
         {
             // Deshabilitar botones para evitar doble click y bloquear cancelación durante instalación
             AceptarButton.IsEnabled = false;
+            HPButton.IsEnabled = false;
+            LenovoButton.IsEnabled = false;
+
+            // Resetear la bandera de cancelación
+            _isCancellationRequested = false;
 
             try
             {
@@ -97,14 +129,100 @@ namespace Instaladores
 
                 // Rehabilitar botones al terminar (o si hay error)
                 AceptarButton.IsEnabled = true;
-                CancelarButton.IsEnabled = true;
+                HPButton.IsEnabled = true;
+                LenovoButton.IsEnabled = true;
+            }
+        }
+
+        private List<int> GetChildProcessIds(int parentId)
+        {
+            var result = new List<int>();
+            var searcher = new ManagementObjectSearcher(
+                $"SELECT ProcessId FROM Win32_Process WHERE ParentProcessId = {parentId}");
+
+            foreach (ManagementObject obj in searcher.Get())
+            {
+                int childId = Convert.ToInt32(obj["ProcessId"]);
+                result.Add(childId);
+
+                //  recursivo 
+                result.AddRange(GetChildProcessIds(childId));
+            }
+
+            return result;
+        }
+
+        private void KillProcessTree(int parentPid)
+        {
+            try
+            {
+                var allPids = new List<int>();
+
+                // obtener todos los hijos
+                allPids.AddRange(GetChildProcessIds(parentPid));
+
+                // agregar el padre al final
+                allPids.Add(parentPid);
+
+                // matar desde los hijos hacia arriba
+                foreach (var pid in allPids.Distinct().Reverse<int>())
+                {
+                    try
+                    {
+                        var proc = Process.GetProcessById(pid);
+
+                        if (!proc.HasExited)
+                        {
+                            proc.Kill();
+                            proc.WaitForExit(2000);
+                        }
+                    }
+                    catch
+                    {
+                        // puede fallar si ya murió
+                    }
+                }
+            }
+            catch
+            {
+                // fallback 
+                Process.Start("taskkill", $"/F /PID {parentPid} /T");
             }
         }
 
         private void Cancelar_Click(object sender, RoutedEventArgs e)
         {
+            _isCancellationRequested = true;
+
+            foreach (var process in _runningProcesses.ToList())
+            {
+                try
+                {
+                    if (process != null)
+                    {
+                        KillProcessTree(process.Id);
+
+                        File.AppendAllText("install.log",
+                            $"[{DateTime.Now}] Árbol de proceso PID {process.Id} cancelado\r\n");
+                    }
+                }
+                catch (Exception ex)
+                {
+                    File.AppendAllText("install.log",
+                        $"[{DateTime.Now}] Error al cancelar PID {process?.Id}: {ex.Message}\r\n");
+                }
+            }
+
+            _runningProcesses.Clear();
+
+            MessageBox.Show("Las instalaciones fueron canceladas.",
+                            "Cancelación",
+                            MessageBoxButton.OK,
+                            MessageBoxImage.Information);
+
             this.Close();
         }
+
 
         private void ShowInstallationSummary()
         {
@@ -117,7 +235,7 @@ namespace Instaladores
 
             foreach (var app in selected)
             {
-                var status = app.InstallationSucceeded ? "✓ OK" : "✗ ERROR";
+                var status = app.InstallationSucceeded ? "OK" : "ERROR";
                 message += $"{app.Nombre}: {status}";
 
                 if (!app.InstallationSucceeded)
@@ -279,6 +397,12 @@ namespace Instaladores
                     if (proc == null)
                         return -1;
 
+                    // Añadir el proceso a la lista de procesos en ejecución
+                    lock (_runningProcesses)
+                    {
+                        _runningProcesses.Add(proc);
+                    }
+
                     progress?.Report(0);
 
                     var rnd = new Random();
@@ -289,6 +413,12 @@ namespace Instaladores
                         await Task.Delay(500);
                         simulated = Math.Min(95, simulated + rnd.Next(3, 10));
                         progress?.Report(simulated);
+                    }
+
+                    // Remover el proceso de la lista cuando termina
+                    lock (_runningProcesses)
+                    {
+                        _runningProcesses.Remove(proc);
                     }
 
                     try
@@ -326,6 +456,13 @@ namespace Instaladores
 
             foreach (var app in selected)
             {
+                // Verificar si se ha solicitado cancelación
+                if (_isCancellationRequested)
+                {
+                    File.AppendAllText("install.log", $"[{DateTime.Now}] Instalación cancelada por el usuario\r\n");
+                    break;
+                }
+
                 var installer = FindInstallerFile(app);
                 if (installer == null)
                 {

@@ -89,8 +89,8 @@
                 <StackPanel Grid.Column="1"
                             Orientation="Horizontal"
                             HorizontalAlignment="Right">
-                    <Button Content="HP" Width="70" Height="26" Margin="0,0,8,0" Click="HP_Button"/>
-                    <Button Content="Lenovo" Width="70" Height="26" Click="Lenovo_Button"/>
+                    <Button x:Name="HPButton" Content="HP" Width="70" Height="26" Margin="0,0,8,0" Click="HP_Button"/>
+                    <Button x:Name="LenovoButton" Content="Lenovo" Width="70" Height="26" Click="Lenovo_Button"/>
                 </StackPanel>
             </Grid>
 
