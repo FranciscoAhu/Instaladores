@@ -189,7 +189,7 @@ namespace Instaladores
                 Process.Start("taskkill", $"/F /PID {parentPid} /T");
             }
         }
-
+        // Este método se ejecuta cuando el usuario hace clic en el botón "Cancelar". Establece la bandera de cancelación, intenta matar todos los procesos en ejecución relacionados con las instalaciones y muestra un mensaje de confirmación al usuario. También registra las acciones de cancelación en el archivo de log. Después de cancelar, cierra la ventana principal.
         private void Cancelar_Click(object sender, RoutedEventArgs e)
         {
             _isCancellationRequested = true;
@@ -215,43 +215,40 @@ namespace Instaladores
 
             _runningProcesses.Clear();
 
-            MessageBox.Show("Las instalaciones fueron canceladas.",
+            /*MessageBox.Show("Las instalaciones fueron canceladas.",
                             "Cancelación",
                             MessageBoxButton.OK,
                             MessageBoxImage.Information);
+            */
 
             this.Close();
         }
 
-
+        // Muestra una ventana resumen al finalizar la instalación, indicando qué aplicaciones se instalaron correctamente y cuáles tuvieron errores. Solo muestra las aplicaciones que fueron seleccionadas para instalación. Cada aplicación se muestra con su nombre, estado (OK o ERROR) y un color verde para éxito o rojo para error.
         private void ShowInstallationSummary()
         {
             var selected = Apps?.Where(a => a.IsSelected).ToList();
             if (selected == null || selected.Count == 0)
                 return;
 
-            var message = "Resumen de Instalaciones:\r\n\r\n";
-            bool hasErrors = false;
+            var items = new List<SummaryItem>();
 
             foreach (var app in selected)
             {
-                var status = app.InstallationSucceeded ? "OK" : "ERROR";
-                message += $"{app.Nombre}: {status}";
-
-                if (!app.InstallationSucceeded)
+                items.Add(new SummaryItem
                 {
-                    hasErrors = true;
-                    if (!string.IsNullOrEmpty(app.InstallationError))
-                    {
-                        message += $"\n  Motivo: {app.InstallationError}";
-                    }
-                }
-                message += "\r\n";
+                    Nombre = app.Nombre,
+                    Status = app.InstallationSucceeded ? " OK" : " ERROR",
+                    StatusColor = app.InstallationSucceeded
+                        ? new System.Windows.Media.SolidColorBrush(System.Windows.Media.Colors.Green)
+                        : new System.Windows.Media.SolidColorBrush(System.Windows.Media.Colors.Tomato)
+                });
             }
 
-            MessageBox.Show(message, "Resumen de Instalaciones", MessageBoxButton.OK, 
-                hasErrors ? MessageBoxImage.Warning : MessageBoxImage.Information);
+            var summary = new SummaryWindow(items);
+            summary.ShowDialog();
         }
+        //Botones
         private void HP_Button(object sender, RoutedEventArgs e)
         {
             var hpApp = Apps.FirstOrDefault(a => a.Id == "HP");
@@ -291,7 +288,7 @@ namespace Instaladores
                 app.IsSelected = false;
             }
         }
-
+        /* Este método no se está utilizando actualmente, pero se puede usar para verificar si una aplicación ya está instalada antes de intentar instalarla. */
         private bool IsApplicationInstalled(AppItem app)
         {
             if (string.IsNullOrWhiteSpace(app.Nombre))
@@ -352,6 +349,7 @@ namespace Instaladores
             return false;
         }
 
+        /* Este método busca el archivo instalador más reciente(.msi o .exe) en la ruta especificada para la aplicación.Si el tipo es "msi", busca archivos.msi; de lo contrario, busca archivos.exe.Devuelve la ruta completa del instalador encontrado o null si no se encuentra ninguno. */
         private string FindInstallerFile(AppItem app)
         {
             if (app == null || string.IsNullOrWhiteSpace(app.Ruta))
@@ -371,7 +369,7 @@ namespace Instaladores
                 .OrderByDescending(f => new FileInfo(f).CreationTime)
                 .FirstOrDefault();
         }
-
+        /* este método ejecuta el instalador especificado con los argumentos proporcionados y reporta el progreso a través de la interfaz IProgress<int>. Si elevate es true, se ejecutará con privilegios elevados. El método maneja la ejecución del proceso, monitorea su progreso simulado y devuelve el código de salida al finalizar. También maneja excepciones y reporta errores a través del progreso. */
         private async Task<int> RunInstallerAsync(string filePath, string args, IProgress<int> progress = null, bool elevate = true)
         {
             if (string.IsNullOrEmpty(filePath) || (!File.Exists(filePath) && !string.Equals(Path.GetFileName(filePath), "msiexec", StringComparison.OrdinalIgnoreCase)))
@@ -438,7 +436,7 @@ namespace Instaladores
                 return -1;
             }
         }
-
+        /* Este método es el núcleo de la aplicación, encargado de ejecutar los instaladores seleccionados por el usuario.Primero, filtra las aplicaciones seleccionadas y luego itera sobre ellas para ejecutar sus instaladores correspondientes. Durante la ejecución, maneja casos especiales (como Crystal Viewer), reporta el progreso, maneja errores y permite la cancelación de la instalación.Al finalizar, actualiza el estado de cada aplicación según el resultado de la instalación. */
         private async Task ExecuteSelectedAppsAsync()
         {
             var selected = Apps?.Where(a => a.IsSelected).ToList();
