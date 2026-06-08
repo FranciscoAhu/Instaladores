@@ -1,0 +1,86 @@
+[
+  {
+    "Nombre": "Google Chrome",
+    "Id": "Chrome",
+    "Ruta": "\\\\REPOCST\\Apps\\Chrome",
+    "Tipo": "exe",
+    "Args": "--system-level --silent --do-not-launch-chrome"
+  },
+  {
+    "Nombre": "AcrobatReader",
+    "Id": "Acrobat",
+    "Ruta": "\\\\REPOCST\\Apps\\AcrobeReader",
+    "Tipo": "exe",
+    "Args": "/sAll /rs /rps /quiet /norestart"
+  },
+  {
+    "Nombre": "Java",
+    "Id": "Java",
+    "Ruta": "\\\\REPOCST\\Apps\\Java",
+    "Tipo": "exe",
+    "Args": "/s"
+  },
+  {
+    "Nombre": "FileZilla",
+    "Id": "Zilla",
+    "Ruta": "\\\\REPOCST\\Apps\\FileZilla",
+    "Tipo": "exe",
+    "Args": "/S"
+  },
+  {
+    "Nombre": "Teams",
+    "Id": "Teams",
+    "Ruta": "\\\\REPOCST\\Apps\\Teams",
+    "Tipo": "exe",
+    "Args": "-s"
+  },
+  {
+    "Nombre": "Office",
+    "Id": "Office",
+    "Ruta": "\\\\REPOCST\\Apps\\Office",
+    "Tipo": "exe",
+    "Args": "/configure configuration.xml"
+  },
+  {
+    "Nombre": "PowerBI",
+    "Id": "PowerBI",
+    "Ruta": "\\\\REPOCST\\Apps\\PowerBI",
+    "Tipo": "exe",
+    "Args": "/quiet /norestart ACCEPT_EULA=1"
+  },
+  {
+    "Nombre": "VPN",
+    "Id": "VPN",
+    "Ruta": "\\\\REPOCST\\Apps\\VPN",
+    "Tipo": "msi",
+    "Args": "/qn /norestart"
+  },
+  {
+    "Nombre": "Crystal Viewer",
+    "Id": "Crystal",
+    "Ruta": "\\\\REPOCST\\Apps\\Crystal",
+    "Tipo": "exe",
+    "Args": "/quiet /norestart"
+  },
+  {
+    "Nombre": "LibreOffice",
+    "Id": "Libre",
+    "Ruta": "\\\\REPOCST\\Apps\\Libre",
+    "Tipo": "msi",
+    "Args": "/qn /norestart"
+  },
+  {
+    "Nombre": "HP Support Assistant",
+    "Id": "HP",
+    "Ruta": "\\\\REPOCST\\Apps\\HP",
+    "Tipo": "exe",
+    "Args": "/S"
+  },
+  {
+    "Nombre": "Lenovo System Update",
+    "Id": "Lenovo",
+    "Ruta": "\\\\REPOCST\\Apps\\Lenovo",
+    "Tipo": "exe",
+    "Args": "/SP- /VERYSILENT /SUPPRESSMSGBOXES /NORESTART"
+  }
+]

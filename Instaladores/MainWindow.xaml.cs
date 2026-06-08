@@ -1,14 +1,17 @@
-﻿using System;
+﻿using Microsoft.Win32;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Management;
+using System.Net;
+using System.Security.Cryptography;
+using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
 using System.Windows;
-using Microsoft.Win32;
-using System.Management;
-using System.Net;
+using System.Windows.Input;
 
 namespace Instaladores
 {
@@ -43,9 +46,31 @@ namespace Instaladores
                 Application.Current.Shutdown();
                 return;
             }
+
+            // Preguntar modo de instalación
+            var resultado = MessageBox.Show(
+                "¿Deseas instalar desde la red corporativa?\n\nSí \nNo = Local",
+                "Modo de instalación",
+                MessageBoxButton.YesNo,
+                MessageBoxImage.Question);
+
+            bool usarRed = resultado == MessageBoxResult.Yes;
+
+            if (usarRed)
+                // Mapear unidad de red
+                MapearUnidadRed();
+
+            if (!usarRed)
+                MessageBox.Show(
+                    "Para usar el modo local debes copiar la carpeta Apps en la siguiente ruta C:/Users/Artemisa/Desktop",
+                    "Modo local",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Warning
+                    );
+
             InitializeComponent();
 
-            Apps = CargarApps();
+            Apps = CargarApps(usarRed);
             Profiles = CargarPerfiles();
 
             DataContext = this;
@@ -63,9 +88,112 @@ namespace Instaladores
                 return false;
             }
         }
-        private List<AppItem> CargarApps()
+
+        
+
+        private static readonly byte[] KEY = Encoding.UTF8.GetBytes("Cns2024$SecretK1"); // exactamente 16 caracteres
+        private static readonly byte[] IV = Encoding.UTF8.GetBytes("Cns2024$InitVec1"); // exactamente 16 caracteres
+
+        private string DesencriptarPassword(string encrypted)
         {
-            var json = File.ReadAllText("apps.json");
+            using (var aes = Aes.Create())
+            {
+                aes.Key = KEY;
+                aes.IV = IV;
+
+                byte[] data = Convert.FromBase64String(encrypted);
+
+                using (var decryptor = aes.CreateDecryptor())
+                using (var ms = new MemoryStream(data))
+                using (var cs = new CryptoStream(ms, decryptor, CryptoStreamMode.Read))
+                using (var reader = new StreamReader(cs))
+                    return reader.ReadToEnd();
+            }
+        }
+
+        private string EncriptarPassword(string password)
+        {
+            using (var aes = Aes.Create())
+            {
+                aes.Key = KEY;
+                aes.IV = IV;
+
+                using (var encryptor = aes.CreateEncryptor())
+                using (var ms = new MemoryStream())
+                using (var cs = new CryptoStream(ms, encryptor, CryptoStreamMode.Write))
+                {
+                    byte[] data = Encoding.UTF8.GetBytes(password);
+                    cs.Write(data, 0, data.Length);
+                    cs.FlushFinalBlock();
+                    return Convert.ToBase64String(ms.ToArray());
+                }
+            }
+        }
+        private const string PASSWORD_CIFRADA = "el_base64_que_generaste";
+        private void MapearUnidadRed()
+        {
+            try
+            {
+                // Primero verificar si ya es accesible sin mapear
+                if (Directory.Exists(@"\\REPOCST\Apps"))
+                {
+                    File.AppendAllText("install.log", $"[{DateTime.Now}] Ruta UNC ya accesible sin mapear\r\n");
+                    return;
+                }
+                string password = DesencriptarPassword("BVwoGgSfD11UuDumlO1ilA==");
+                // Intentar con credenciales
+                var psi = new ProcessStartInfo
+                {
+                    FileName = "net",
+                    Arguments = $@"use \\REPOCST\Apps /user:artemisa {password}",
+                    CreateNoWindow = true,
+                    UseShellExecute = false,
+                    RedirectStandardOutput = true,
+                    RedirectStandardError = true
+                };
+
+                using (var proc = Process.Start(psi))
+                {
+                    string output = proc.StandardOutput.ReadToEnd();
+                    string error = proc.StandardError.ReadToEnd();
+                    proc.WaitForExit();
+
+                    File.AppendAllText("install.log", $"[{DateTime.Now}] net use ExitCode: {proc.ExitCode}\r\n");
+                    File.AppendAllText("install.log", $"[{DateTime.Now}] net use Output: {output}\r\n");
+                    File.AppendAllText("install.log", $"[{DateTime.Now}] net use Error: {error}\r\n");
+                }
+
+                // Esperar que se estabilice
+                System.Threading.Thread.Sleep(3000);
+
+                // Verificar acceso
+                bool accesible = Directory.Exists(@"\\REPOCST\Apps");
+                File.AppendAllText("install.log", $"[{DateTime.Now}] Accesible después del mapeo: {accesible}\r\n");
+
+                if (!accesible)
+                {
+                    MessageBox.Show(
+                        "No se pudo conectar al servidor de instaladores.\n\nVerifica que el equipo esté en la red corporativa.",
+                        "Error de red",
+                        MessageBoxButton.OK,
+                        MessageBoxImage.Error);
+                }
+            }
+            catch (Exception ex)
+            {
+                File.AppendAllText("install.log", $"[{DateTime.Now}] Excepción MapearUnidadRed: {ex.Message}\r\n");
+                MessageBox.Show(
+                    $"Error al conectar con el servidor:\n\n{ex.Message}",
+                    "Error de red",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Error);
+            }
+        }
+
+        private List<AppItem> CargarApps(bool usarRed)
+        {
+            string archivo = usarRed ? "appsRed.json" : "appsLocal.json";
+            var json = File.ReadAllText(archivo);
             return JsonSerializer.Deserialize<List<AppItem>>(json);
         }
 
@@ -353,21 +481,65 @@ namespace Instaladores
         private string FindInstallerFile(AppItem app)
         {
             if (app == null || string.IsNullOrWhiteSpace(app.Ruta))
-                return null;
-
-            if (!Directory.Exists(app.Ruta))
-                return null;
-
-            if (string.Equals(app.Tipo, "msi", StringComparison.OrdinalIgnoreCase))
             {
-                return Directory.GetFiles(app.Ruta, "*.msi")
-                    .OrderByDescending(f => new FileInfo(f).CreationTime)
-                    .FirstOrDefault();
+                File.AppendAllText("install.log", $"[{DateTime.Now}] FindInstallerFile: app o ruta nula para {app?.Nombre}\r\n");
+                return null;
             }
 
-            return Directory.GetFiles(app.Ruta, "*.exe")
-                .OrderByDescending(f => new FileInfo(f).CreationTime)
-                .FirstOrDefault();
+            File.AppendAllText("install.log", $"[{DateTime.Now}] Buscando instalador en: {app.Ruta}\r\n");
+
+            // Reintentar varias veces si la ruta no existe (para dar tiempo al mapeo de red)
+            int maxRetries = 5;
+            int retryCount = 0;
+
+            while (retryCount < maxRetries)
+            {
+                if (Directory.Exists(app.Ruta))
+                {
+                    File.AppendAllText("install.log", $"[{DateTime.Now}] Directorio encontrado: {app.Ruta}\r\n");
+
+                    if (string.Equals(app.Tipo, "msi", StringComparison.OrdinalIgnoreCase))
+                    {
+                        var files = Directory.GetFiles(app.Ruta, "*.msi")
+                            .OrderByDescending(f => new FileInfo(f).CreationTime)
+                            .ToList();
+
+                        File.AppendAllText("install.log", $"[{DateTime.Now}] Archivos MSI encontrados: {files.Count}\r\n");
+
+                        if (files.Count > 0)
+                        {
+                            File.AppendAllText("install.log", $"[{DateTime.Now}] Usando: {files.First()}\r\n");
+                            return files.First();
+                        }
+                    }
+
+                    var exeFiles = Directory.GetFiles(app.Ruta, "*.exe")
+                        .OrderByDescending(f => new FileInfo(f).CreationTime)
+                        .ToList();
+
+                    File.AppendAllText("install.log", $"[{DateTime.Now}] Archivos EXE encontrados: {exeFiles.Count}\r\n");
+
+                    if (exeFiles.Count > 0)
+                    {
+                        File.AppendAllText("install.log", $"[{DateTime.Now}] Usando: {exeFiles.First()}\r\n");
+                        return exeFiles.First();
+                    }
+
+                    // No encontró instalador
+                    File.AppendAllText("install.log", $"[{DateTime.Now}] No se encontraron archivos .exe o .msi en {app.Ruta}\r\n");
+                    return null;
+                }
+
+                retryCount++;
+                if (retryCount < maxRetries)
+                {
+                    File.AppendAllText("install.log", $"[{DateTime.Now}] Directorio no encontrado: {app.Ruta} (intento {retryCount}/{maxRetries})\r\n");
+                    System.Threading.Thread.Sleep(1000); // Esperar 1 segundo antes de reintentar
+                }
+            }
+
+            File.AppendAllText("install.log", $"[{DateTime.Now}] Directorio NO encontrado después de {maxRetries} intentos: {app.Ruta}\r\n");
+            return null;
         }
         /* este método ejecuta el instalador especificado con los argumentos proporcionados y reporta el progreso a través de la interfaz IProgress<int>. Si elevate es true, se ejecutará con privilegios elevados. El método maneja la ejecución del proceso, monitorea su progreso simulado y devuelve el código de salida al finalizar. También maneja excepciones y reporta errores a través del progreso. */
         private async Task<int> RunInstallerAsync(string filePath, string args, IProgress<int> progress = null, bool elevate = true)

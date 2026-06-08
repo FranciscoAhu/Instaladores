@@ -1,8 +1,8 @@
-﻿<Window x:Name="InstaladorAppCNS" x:Class="Instaladores.MainWindow"
+﻿<Window x:Name="CNSLaunchDesk" x:Class="Instaladores.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:local="clr-namespace:Instaladores"
-        Title="InstaladorAppCNS"
+        Title="CNS LaunchDesk"
         Height="500"
         Width="450"
         Background="{DynamicResource PrimaryBrush}"
@@ -182,7 +182,7 @@
 
             <!-- Botón Deseleccionar todo (izquierda) -->
             <Button Grid.Column="0"
-                    Content="Deseleccionar todo"
+                    Content="Quitar selección"
                     Width="Auto"
                     Padding="10,4"
                     Click="DeselectAll_Button"/>
